@@ -1014,25 +1014,25 @@ func (s *SignalClient) GetGroups(number string) ([]GroupEntry, error) {
 
 		members := []string{}
 		for _, val := range signalCliGroupEntry.Members {
-			members = append(members, val.Number)
+			members = append(members, val.Uuid)
 		}
 		groupEntry.Members = members
 
 		pendingMembers := []string{}
 		for _, val := range signalCliGroupEntry.PendingMembers {
-			pendingMembers = append(pendingMembers, val.Number)
+			pendingMembers = append(pendingMembers, val.Uuid)
 		}
 		groupEntry.PendingRequests = pendingMembers
 
 		requestingMembers := []string{}
 		for _, val := range signalCliGroupEntry.RequestingMembers {
-			requestingMembers = append(requestingMembers, val.Number)
+			requestingMembers = append(requestingMembers, val.Uuid)
 		}
 		groupEntry.PendingInvites = requestingMembers
 
 		admins := []string{}
 		for _, val := range signalCliGroupEntry.Admins {
-			admins = append(admins, val.Number)
+			admins = append(admins, val.Uuid)
 		}
 		groupEntry.Admins = admins
 
