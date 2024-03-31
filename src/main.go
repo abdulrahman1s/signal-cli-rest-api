@@ -175,7 +175,7 @@ func main() {
 
 		SendMessageRequestResponse := v1.Group("/send-message-request")
 		{
-			SendMessageRequestResponse.POST("", api.SendMessageRequestResponse)
+			SendMessageRequestResponse.POST(":number", api.SendMessageRequestResponse)
 		}
 
 		sendV1 := v1.Group("/send")
