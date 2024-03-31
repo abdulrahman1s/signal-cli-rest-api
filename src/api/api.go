@@ -70,6 +70,11 @@ type Configuration struct {
 	Logging LoggingConfiguration `json:"logging"`
 }
 
+type SendMessageRequestResponseReq struct {
+	Recipient string              `json:"recipient"`
+	Type      string              `json:"type"`
+}
+
 type RegisterNumberRequest struct {
 	UseVoice bool   `json:"use_voice"`
 	Captcha  string `json:"captcha"`
@@ -1106,9 +1111,42 @@ func (a *Api) ListIdentities(c *gin.Context) {
 	c.JSON(200, identityEntries)
 }
 
+
+// @Summary Send Message Request Response
+// @Tags Messages
+// @Description List all identities for the given number.
+// @Produce  json
+// @Success 204 {string} string "OK"
+// @Failure 400 {object} Error
+// @Param number path string true "Registered Phone Number"
+// @Router /v1/send-message-request/{number} [post]
+func (a *Api) SendMessageRequestResponse(c *gin.Context) {
+	number := c.Param("number")
+
+	var req SendMessageRequestResponseReq
+
+	err := c.BindJSON(&req)
+	
+	if err != nil {
+		c.JSON(400, Error{Msg: "Couldn't process request - invalid request"})
+		log.Error(err.Error())
+		return
+	}
+
+	err = a.signalClient.SendMessageRequestResponse(number, req.Recipient, req.Type)
+
+	if err != nil {
+		c.JSON(400, Error{Msg: err.Error()})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 // @Summary Trust Identity
 // @Tags Identities
 // @Description Trust an identity. When 'trust_all_known_keys' is set to' true', all known keys of this user are trusted. **This is only recommended for testing.**
+// @Accept  json
 // @Produce  json
 // @Success 204 {string} OK
 // @Param data body TrustIdentityRequest true "Input Data"

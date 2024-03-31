@@ -1366,6 +1366,24 @@ func (s *SignalClient) ListIdentities(number string) (*[]IdentityEntry, error) {
 	return &identityEntries, nil
 }
 
+func (s *SignalClient) SendMessageRequestResponse(number string, recipient string, Type string) error {
+	type Request struct {
+		Recipient            string `json:"recipient"`
+		Type                 string `json:"type"`
+	}
+
+	request := Request{Recipient: recipient, Type: Type}
+	jsonRpc2Client, err := s.getJsonRpc2Client()
+	
+	if err != nil {
+		return err
+	}
+
+	_, err = jsonRpc2Client.getRaw("sendMessageRequestResponse", &number, request)
+
+	return err
+}
+
 func (s *SignalClient) TrustIdentity(number string, numberToTrust string, verifiedSafetyNumber *string, trustAllKnownKeys *bool) error {
 	var err error
 	if s.signalCliMode == JsonRpc {

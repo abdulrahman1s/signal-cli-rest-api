@@ -173,6 +173,11 @@ func main() {
 			unregister.POST(":number", api.UnregisterNumber)
 		}
 
+		SendMessageRequestResponse := v1.Group("/send-message-request")
+		{
+			SendMessageRequestResponse.POST("", api.SendMessageRequestResponse)
+		}
+
 		sendV1 := v1.Group("/send")
 		{
 			sendV1.POST("", api.Send)
