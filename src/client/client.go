@@ -1368,10 +1368,10 @@ func (s *SignalClient) ListIdentities(number string) (*[]IdentityEntry, error) {
 	return &identityEntries, nil
 }
 
-func (s *SignalClient) SendMessageRequestResponse(number string, recipient string, Type string) error {
+func (s *SignalClient) SendMessageRequestResponse(number string, recipient string, Type *int) error {
 	type Request struct {
 		Recipient            string `json:"recipient"`
-		Type                 string `json:"type"`
+		Type                 *int   `json:"type"`
 	}
 
 	request := Request{Recipient: recipient, Type: Type}

@@ -72,7 +72,7 @@ type Configuration struct {
 
 type SendMessageRequestResponseReq struct {
 	Recipient string              `json:"recipient"`
-	Type      string              `json:"type"`
+	Type      *int                `json:"type"`
 }
 
 type RegisterNumberRequest struct {
