@@ -161,7 +161,7 @@ type SignalCliIdentityEntry struct {
 }
 
 type SendResponse struct {
-	Timestamp int64 `json:"timestamp"`
+	Timestamp       int64    `json:"timestamp"`
 }
 
 type About struct {
@@ -456,6 +456,8 @@ func (s *SignalClient) send(number string, message string,
 
 		err = json.Unmarshal([]byte(rawData), &resp)
 		if err != nil {
+			cleanupAttachmentEntries(attachmentEntries)
+
 			if strings.Contains(err.Error(), signalCliV2GroupError) {
 				return nil, errors.New("Cannot send message to group - please first update your profile.")
 			}

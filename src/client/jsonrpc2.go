@@ -15,8 +15,9 @@ import (
 )
 
 type Error struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Code    int             `json:"code"`
+	Message string          `json:"message"`
+	Data    json.RawMessage `json:"data"`
 }
 
 type JsonRpc2MessageResponse struct {
@@ -29,6 +30,27 @@ type JsonRpc2ReceivedMessage struct {
 	Method string          `json:"method"`
 	Params json.RawMessage `json:"params"`
 	Err    Error           `json:"error"`
+}
+
+type RateLimitMessage struct {
+	Response RateLimitResponse `json:"response"`
+}
+
+type RateLimitResponse struct {
+	Results []RateLimitResult `json:"results"`
+}
+
+type RateLimitResult struct {
+	Token string `json:"token"`
+}
+
+type RateLimitErrorType struct {
+	ChallengeTokens []string
+	Err             error
+}
+
+func (r *RateLimitErrorType) Error() string {
+	return r.Err.Error()
 }
 
 type JsonRpc2Client struct {
@@ -107,7 +129,7 @@ func (r *JsonRpc2Client) getRaw(command string, account *string, args interface{
 		}
 	}
 
-	log.Debug("full command: ", string(fullCommandBytes))
+	log.Debug("json-rpc command: ", string(fullCommandBytes))
 
 	_, err = r.conn.Write([]byte(string(fullCommandBytes) + "\n"))
 	if err != nil {
@@ -118,12 +140,33 @@ func (r *JsonRpc2Client) getRaw(command string, account *string, args interface{
 	r.receivedResponsesById[u.String()] = responseChan
 
 	var resp JsonRpc2MessageResponse
-  resp = <-responseChan
-  delete(r.receivedResponsesById, u.String())
+	resp = <-responseChan
+	delete(r.receivedResponsesById, u.String())
+
+	log.Debug("json-rpc command response message: ", string(resp.Result))
+	log.Debug("json-rpc response error: ", string(resp.Err.Message))
 
 	if resp.Err.Code != 0 {
+		log.Debug("json-rpc command error code: ", resp.Err.Code)
+		if resp.Err.Code == -5 {
+			var rateLimitMessage RateLimitMessage
+			err = json.Unmarshal(resp.Err.Data, &rateLimitMessage)
+			if err != nil {
+				return "", errors.New(resp.Err.Message + " (Couldn't parse JSON for more details")
+			}
+			challengeTokens := []string{}
+			for _, rateLimitResult := range rateLimitMessage.Response.Results {
+				challengeTokens = append(challengeTokens, rateLimitResult.Token)
+			}
+
+			return "", &RateLimitErrorType{
+							ChallengeTokens: challengeTokens,
+							Err : errors.New(resp.Err.Message),
+						}
+		}
 		return "", errors.New(resp.Err.Message)
 	}
+
 	return string(resp.Result), nil
 }
 
@@ -139,7 +182,7 @@ func (r *JsonRpc2Client) ReceiveData(number string) {
 			}
 			continue
 		}
-		//log.Info("Received data = ", str)
+		log.Debug("json-rpc received data: ", str)
 
 
 
